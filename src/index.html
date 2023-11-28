@@ -1,28 +1,83 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-  <link rel="stylesheet" href="style.css" />
-  <!--carregar arquivo css-->
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!--ajuste de tela em smartphones-->
-    <title>PokeApi</title>
-    <!--titulo da aba da pagina-->
-  </head>
-  <body>
-    <div class="pageContent">
-      <h2 id="name">Nome do Pokemon</h2>
-      <img
-        id="img_sprite_front_default"
-        src="../assets/missingno.png"
-        alt="Imagem do Pokemon"
-      />
-      <div>
-        <button id="previous" onclick="previousPokemon()">Anterior</button>
-        <button id="next" onclick="nextPokemon()">Proximo</button>
-      </div>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokedex Application</title>
+    <style>
+        body {
+            font-family: "Roboto", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .pageContent {
+            margin-top: 5em;
+            height: 100vh;
+            text-align: center;
+        }
+
+        img {
+            width: 96px;
+            height: 96px;
+            margin-block: 1em;
+        }
+
+        button {
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 18px;
+            margin-top: 1em;
+        }
+    </style>
+</head>
+<body>
+
+<div class="pageContent">
+    <h2 id="name">Nome do Pokemon</h2>
+    <img id="img_sprite_front_default" src="../assets/missingno.png" alt="Imagem do Pokemon">
+    <div>
+        <button id="previous" onclick="navigatePokemon(-1)">Anterior</button>
+        <button id="next" onclick="navigatePokemon(1)">Próximo</button>
     </div>
-  </body>
-  <script src="script.js" type="text/javascript"></script>
-  <!--carregar arquivo js-->
+</div>
+
+<script>
+    const apiUrl = "https://pokeapi.co/api/v2/pokemon/?offset=0&limit=151";
+    let pokemons = [];
+    let currentPokemon = 0;
+
+    async function fetchData(url) {
+        const resultData = await fetch(url);
+        return await resultData.json();
+    }
+
+    async function fetchPokemons() {
+        const resultData = await fetchData(apiUrl);
+        pokemons = resultData.results;
+    }
+
+    async function updatePokemon() {
+        const { url, name } = pokemons[currentPokemon];
+        const { sprites } = await fetchData(url);
+        document.getElementById("img_sprite_front_default").src = sprites.front_default;
+        document.getElementById("name").innerText = name;
+    }
+
+    async function navigatePokemon(offset) {
+        if (pokemons.length === 0) await fetchPokemons();
+        currentPokemon = (currentPokemon + offset + pokemons.length) % pokemons.length;
+        await updatePokemon();
+    }
+
+    // Fetch initial data on page load
+    document.addEventListener("DOMContentLoaded", async () => {
+        await fetchPokemons();
+        await updatePokemon();
+    });
+</script>
+
+</body>
 </html>
